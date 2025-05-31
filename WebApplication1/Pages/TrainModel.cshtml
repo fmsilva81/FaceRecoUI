@@ -1,0 +1,15 @@
+﻿@page
+@model TrainModel
+@{
+    ViewData["Title"] = "Train Model";
+}
+
+<h2>Train Model</h2>
+<form method="post">
+    <button type="submit">Train Custom Model</button>
+</form>
+
+@if (Model.Message != null)
+{
+    <p>@Model.Message</p>
+}

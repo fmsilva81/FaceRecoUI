@@ -1,0 +1,28 @@
+﻿@page
+@model BatchDetectionModel
+@{
+    ViewData["Title"] = "Batch Detection";
+}
+
+<h2>Batch Detection</h2>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="images" multiple />
+    <button type="submit">Detect Faces</button>
+</form>
+
+@if (Model.DetectionResults != null)
+{
+    <h3>Detection Results:</h3>
+    <ul>
+        @foreach (var result in Model.DetectionResults)
+        {
+            <li>Image: @result.ImageName</li>
+            <ul>
+                @foreach (var face in result.Faces)
+                {
+                    <li>Face at (@face.X, @face.Y) with confidence @face.Confidence</li>
+                }
+            </ul>
+        }
+    </ul>
+}

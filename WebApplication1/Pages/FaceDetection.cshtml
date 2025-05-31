@@ -1,0 +1,22 @@
+﻿@page
+@model WebApplication1.Pages.FaceDetectionModel
+@{
+    ViewData["Title"] = "Face Detection";
+}
+
+<h2>Face Detection</h2>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="image" />
+    <button type="submit">Detect Faces</button>
+</form>
+
+@if (Model.DetectionResults != null)
+{
+    <h3>Detection Results:</h3>
+    <ul>
+        @foreach (var result in Model.DetectionResults)
+        {
+            <li>Face at (@result.X, @result.Y) with confidence @result.Confidence</li>
+        }
+    </ul>
+}

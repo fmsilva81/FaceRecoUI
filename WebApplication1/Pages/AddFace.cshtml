@@ -1,0 +1,17 @@
+﻿@page
+@model AddFaceModel
+@{
+    ViewData["Title"] = "Add Face";
+}
+
+<h2>Add Face</h2>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="image" />
+    <input type="text" name="name" placeholder="Enter name" />
+    <button type="submit">Add Face</button>
+</form>
+
+@if (Model.Message != null)
+{
+    <p>@Model.Message</p>
+}

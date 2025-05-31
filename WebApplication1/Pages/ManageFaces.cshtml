@@ -1,0 +1,18 @@
+﻿@page
+@model ManageFacesModel
+@{
+    ViewData["Title"] = "Manage Faces";
+}
+
+<h2>Manage Faces</h2>
+<ul>
+    @foreach (var name in Model.FaceNames)
+    {
+        <li>
+            @name
+            <form method="post" asp-page-handler="Delete" asp-route-name="@name">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    }
+</ul>

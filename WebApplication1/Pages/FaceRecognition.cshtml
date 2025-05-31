@@ -1,0 +1,22 @@
+﻿@page
+@model FaceRecognitionModel
+@{
+    ViewData["Title"] = "Face Recognition";
+}
+
+<h2>Face Recognition</h2>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="image" />
+    <button type="submit">Recognize Faces</button>
+</form>
+
+@if (Model.RecognitionResults != null)
+{
+    <h3>Recognition Results:</h3>
+    <ul>
+        @foreach (var result in Model.RecognitionResults)
+        {
+            <li>@result</li>
+        }
+    </ul>
+}

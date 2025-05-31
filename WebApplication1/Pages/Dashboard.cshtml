@@ -1,0 +1,19 @@
+﻿@page
+@model DashboardModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h2>Dashboard</h2>
+<p>Status: @Model.StatusMessage</p>
+
+@section Scripts {
+    <script>
+        async function checkStatus() {
+            const response = await fetch('/health');
+            const data = await response.text();
+            document.getElementById('status').innerText = data;
+        }
+        checkStatus();
+    </script>
+}
