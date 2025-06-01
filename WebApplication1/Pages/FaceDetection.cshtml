@@ -16,7 +16,10 @@
     <ul>
         @foreach (var result in Model.DetectionResults)
         {
-            <li>Face at (@result.X, @result.Y) with confidence @result.Confidence</li>
+            @foreach (var face in result.Faces)
+            {
+                <li>Face at (@face.Bbox[0], @face.Bbox[1],@face.Bbox[2],@face.Bbox[3]) with confidence @face.Score</li>
+            }
         }
     </ul>
 }

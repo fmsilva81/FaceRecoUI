@@ -18,11 +18,13 @@
         {
             <li>Image: @result.ImageName</li>
             <ul>
-                @foreach (var face in result.Faces)
+                @foreach (var faceResults in result.FaceResults)
                 {
-                    <li>Face at (@face.X, @face.Y) with confidence @face.Confidence</li>
-                }
-            </ul>
+                    @foreach (var face in faceResults.Faces)
+                    {
+                        <li>Face at (@face.Bbox[0], @face.Bbox[1],@face.Bbox[2],@face.Bbox[3]) with confidence @face.Score</li>
+                    }
+}            </ul>
         }
     </ul>
 }

@@ -10,48 +10,60 @@ namespace WebApplication1.Pages
 
 
     public class FaceDetectionModel : PageModel
-{
+    {
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public List<DetectionResult> DetectionResults { get; set; }
+        public List<FaceApiResponse> DetectionResults { get; set; }
 
-    public FaceDetectionModel(IHttpClientFactory httpClientFactory)
+        public FaceDetectionModel(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
         }
 
         public async Task<IActionResult> OnPostAsync()
-    {
-        var file = Request.Form.Files["image"];
-        if (file == null || file.Length == 0)
         {
-            return Page();
-        }
+            var file = Request.Form.Files["image"];
+            if (file == null || file.Length == 0)
+            {
+                return Page();
+            }
 
-        using (var content = new MultipartFormDataContent())
-        {
-            var fileContent = new StreamContent(file.OpenReadStream());
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-            content.Add(fileContent, "image", file.FileName);
+            using (var content = new MultipartFormDataContent())
+            {
+                var fileContent = new StreamContent(file.OpenReadStream());
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                content.Add(fileContent, "image", file.FileName);
 
 
                 var client = _httpClientFactory.CreateClient("FaceApi");
 
                 var response = await client.PostAsync("/detect", content);
 
-            var json = await response.Content.ReadAsStringAsync();
-            DetectionResults = JsonSerializer.Deserialize<List<DetectionResult>>(json);
+                var json = await response.Content.ReadAsStringAsync();
+                DetectionResults = JsonSerializer.Deserialize<List<FaceApiResponse>>(json);
+            }
+
+            return Page();
         }
-
-        return Page();
     }
-}
 
-public class DetectionResult
-{
-    public int X { get; set; }
-    public int Y { get; set; }
-    public float Confidence { get; set; }
-}
+    //public class DetectionResult
+    //{
+    //    public int X { get; set; }
+    //    public int Y { get; set; }
+    //    public float Confidence { get; set; }
+    //}
+    public class FaceApiResponse
+    {
+        public List<Face> Faces { get; set; }
+        public string Status { get; set; }
+    }
+
+    public class Face
+    {
+        public List<int> Bbox { get; set; }
+        public float Score { get; set; }
+    }
+
 }
 

@@ -47,5 +47,5 @@ public class BatchDetectionModel : PageModel
 public class BatchDetectionResult
 {
     public string ImageName { get; set; }
-    public List<DetectionResult> Faces { get; set; }
+    public List<FaceApiResponse> FaceResults { get; set; }
 }
