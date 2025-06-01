@@ -1,0 +1,42 @@
+﻿@page
+@model LiveCameraModel
+@{
+    ViewData["Title"] = "Live Camera Feed";
+}
+
+<h2>Live Camera Feed</h2>
+
+<div class="video-container" style="display: flex; gap: 2rem;">
+    <div>
+        <h4>Video Stream</h4>
+        <img id="cameraFeed" src="http://localhost:8012/video_feed" alt="Camera Feed" style="max-width: 640px; border: 1px solid #ccc;" />
+    </div>
+    <div>
+        <h4>Recognized Faces</h4>
+        <ul id="recognizedNames" style="list-style-type: none; padding-left: 0;"></ul>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const recognizedList = document.getElementById("recognizedNames");
+        const ws = new WebSocket("ws://localhost:8012/ws/recognitions");
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const recognized = data.recognized;
+            if (Array.isArray(recognized)) {
+                recognizedList.innerHTML = ""; // Clear previous list
+                recognized.forEach(name => {
+                    const li = document.createElement("li");
+                    li.textContent = name;
+                    recognizedList.appendChild(li);
+                });
+            }
+        };
+
+        ws.onerror = function(event) {
+            console.error("WebSocket error:", event);
+        };
+    </script>
+}
