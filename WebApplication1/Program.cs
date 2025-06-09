@@ -7,7 +7,7 @@ builder.Services.AddRazorPages();
 // Register a shared HttpClient with the base address of your backend API
 builder.Services.AddHttpClient("FaceApi", client =>
 {
-    client.BaseAddress = new Uri("http://192.168.1.172:8012"); // Replace with your actual backend URL
+    client.BaseAddress = new Uri("http://192.168.1.173:8012"); // Replace with your actual backend URL
 });
 
 

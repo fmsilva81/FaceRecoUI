@@ -1,42 +1,209 @@
 ﻿@page
 @model LiveCameraModel
 @{
-    ViewData["Title"] = "Live Camera Feed";
+    Layout = null;
 }
 
-<h2>Live Camera Feed</h2>
 
-<div class="video-container" style="display: flex; gap: 2rem;">
-    <div>
-        <h4>Video Stream</h4>
-        <img id="cameraFeed" src="http://localhost:8012/video_feed" alt="Camera Feed" style="max-width: 640px; border: 1px solid #ccc;" />
-    </div>
-    <div>
-        <h4>Recognized Faces</h4>
-        <ul id="recognizedNames" style="list-style-type: none; padding-left: 0;"></ul>
-    </div>
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
+        }
 
-@section Scripts {
-    <script>
-        const recognizedList = document.getElementById("recognizedNames");
-        const ws = new WebSocket("ws://localhost:8012/ws/recognitions");
+        #stream {
+            width: 600px;
+        }
 
-        ws.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            const recognized = data.recognized;
-            if (Array.isArray(recognized)) {
-                recognizedList.innerHTML = ""; // Clear previous list
-                recognized.forEach(name => {
-                    const li = document.createElement("li");
-                    li.textContent = name;
-                    recognizedList.appendChild(li);
-                });
+        #faces, #known-faces {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+
+        .face-slot {
+            width: 120px;
+            min-height: 140px;
+            border: 1px dashed #aaa;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+            .face-slot img {
+                width: 100px;
+                height: 100px;
+                object-fit: cover;
+                border: 2px solid #333;
             }
-        };
 
-        ws.onerror = function(event) {
-            console.error("WebSocket error:", event);
-        };
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @@keyframes borderFade {
+            0% {
+                border-color: #00ff00;
+                box-shadow: 0 0 10px #00ff00;
+            }
+            100% {
+                border-color: #aaa;
+                box-shadow: none;
+            }
+        }
+
+        .face-slot.updated {
+            animation: borderFade 1s ease-in-out;
+            border-color: #00ff00 !important; /* Ensure all borders start green */
+        }
+
+    </style>
+</head>
+<body>
+    <div id="stream">
+        <h2>Live Stream</h2>
+        <img src="http://localhost:8012/video_feed" alt="Live Stream" style="width: 100%; max-width: 100%;" />
+    </div>
+
+    <div>
+        <h2>Recognized Faces</h2>
+        <div id="faces">
+            <div class="face-slot" id="face0"></div>
+            <div class="face-slot" id="face1"></div>
+            <div class="face-slot" id="face2"></div>
+            <div class="face-slot" id="face3"></div>
+            <div class="face-slot" id="face4"></div>
+        </div>
+        <h2>Known Faces</h2>
+        <div id="known-faces">
+            <div class="face-slot" id="known0"></div>
+            <div class="face-slot" id="known1"></div>
+            <div class="face-slot" id="known2"></div>
+            <div class="face-slot" id="known3"></div>
+            <div class="face-slot" id="known4"></div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script>
+        const client = mqtt.connect('ws://localhost:9001', {
+            username: 'dtmq',
+            password: 'Fel123'
+        });
+
+        const maxMessages = 5;
+        const messageQueue = [];
+
+        const knownFaces = {};
+        const knownTopics = [];
+
+        client.on('connect', () => {
+            client.subscribe('cam/withface');
+            client.subscribe('cam/knownface/+');
+        });
+
+        client.on('message', (topic, message) => {
+            const data = JSON.parse(message.toString());
+
+            if (topic === 'cam/withface') {
+                const container = document.createElement('div');
+                container.classList.add('fade-in');
+
+                const result = document.createElement('p');
+                result.textContent = `Result: ${data.result}`;
+                container.appendChild(result);
+
+                const name = document.createElement('p');
+                name.textContent = `Name: ${data.name || 'Unknown'}`;
+                container.appendChild(name);
+
+                const time = document.createElement('p');
+                time.textContent = `Time: ${new Date(data.datetime).toLocaleString()}`;
+                container.appendChild(time);
+
+                if (data.cropped_face) {
+                    const img = document.createElement('img');
+                    img.src = `data:image/jpeg;base64,${data.cropped_face}`;
+                    container.appendChild(img);
+                }
+
+                messageQueue.unshift(container);
+                if (messageQueue.length > maxMessages) {
+                    messageQueue.pop();
+                }
+
+                for (let i = 0; i < maxMessages; i++) {
+                    const slot = document.getElementById(`face${i}`);
+                    slot.innerHTML = '';
+                    if (messageQueue[i]) {
+                        slot.appendChild(messageQueue[i]);
+                    }
+                }
+            }
+
+            if (topic.startsWith('cam/knownface/')) {
+                const container = document.createElement('div');
+                container.classList.add('fade-in');
+
+                const name = document.createElement('p');
+                name.textContent = `Name: ${data.name || 'Unknown'}`;
+                container.appendChild(name);
+
+                const time = document.createElement('p');
+                time.textContent = `Time: ${new Date(data.datetime).toLocaleString()}`;
+                container.appendChild(time);
+
+                if (data.cropped_face) {
+                    const img = document.createElement('img');
+                    img.src = `data:image/jpeg;base64,${data.cropped_face}`;
+                    container.appendChild(img);
+                }
+
+                knownFaces[topic] = container;
+
+                if (!knownTopics.includes(topic)) {
+                    knownTopics.unshift(topic);
+                    if (knownTopics.length > maxMessages) {
+                        knownTopics.pop();
+                    }
+                }
+
+                for (let i = 0; i < maxMessages; i++) {
+                    const slot = document.getElementById(`known${i}`);
+                    slot.innerHTML = '';
+                    const t = knownTopics[i];
+                    if (t && knownFaces[t]) {
+                        slot.appendChild(knownFaces[t]);
+                        slot.classList.add('updated');
+                        setTimeout(() => slot.classList.remove('updated'), 1000);
+                    }
+                }
+            }
+        });
     </script>
-}
+
+</body>
+</html>
