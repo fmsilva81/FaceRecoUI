@@ -2,16 +2,82 @@
 @model AddFaceModel
 @{
     ViewData["Title"] = "Add Face";
+    Layout = null;
 }
 
-<h2>Add Face</h2>
-<form method="post" enctype="multipart/form-data">
-    <input type="file" name="image" />
-    <input type="text" name="name" placeholder="Enter name" />
-    <button type="submit">Add Face</button>
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Add Face</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
 
-@if (Model.Message != null)
-{
-    <p>@Model.Message</p>
-}
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 300px;
+            padding: 5px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 8px 16px;
+        }
+
+        #addFaceStatus {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add New Face</h1>
+    <form id="addFaceForm" enctype="multipart/form-data">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required />
+
+        <label for="image">Face Image:</label>
+        <input type="file" id="image" name="image" accept="image/*" required />
+
+        <button type="submit">Add Face</button>
+    </form>
+
+    <p id="addFaceStatus"></p>
+
+    <script>
+        document.getElementById('addFaceForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('http://localhost:8012/add-face', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                document.getElementById('addFaceStatus').textContent = result.message;
+                document.getElementById('addFaceStatus').style.color = result.status === 'success' ? 'green' : 'red';
+            } catch (error) {
+                console.error('Error adding face:', error);
+                document.getElementById('addFaceStatus').textContent = 'Failed to add face.' + error;
+                document.getElementById('addFaceStatus').style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
